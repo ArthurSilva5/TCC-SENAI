@@ -1,0 +1,2 @@
+streamlit-aggrid==0.2.3.post2
+requests==2.22.0
