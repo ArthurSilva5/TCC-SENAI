@@ -309,7 +309,7 @@ def removerRecibo():
             if btn == True:
                 for item in sel_row:
                     indice = item["ID"]
-                    cursor.execute(f"DELETE FROM despesas WHERE id = {indice}")
+                    cursor.execute(f"DELETE FROM recibos WHERE id = {indice}")
                     bd.commit()
                 st.warning("Os dados foram excluidos! Atualize a página para visualizar atualizações!")
 removerRecibo()
