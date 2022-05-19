@@ -26,7 +26,7 @@ cursor = bd.cursor(buffered=True)
 # ----------------------------------------------------------------------------------------------------------------------------------
 # Criando o layout
 st.sidebar.title('Menu de Opções')
-esc = st.sidebar.selectbox('Selecione sua opção:',['Página Inicial','Adicionar Despesa','Adicionar Recebimento','Relatório de Gastos','Gráfico de Gastos','Remover Despesas'])
+esc = st.sidebar.selectbox('Selecione sua opção:',['Página Inicial','Adicionar Despesa','Adicionar Recebimento','Relatório de Gastos','Gráfico de Gastos','Remover Despesas','Remover Recebimentos'])
 
 
 # Criando a Página Inicial
@@ -268,3 +268,48 @@ def remover():
                 st.warning("Os dados foram excluidos! Atualize a página para visualizar atualizações!")
 remover()
 #------------------------------------------------------------------------------------------------------------------------------------------
+def removerRecibo():
+    if esc == "Remover Recebimentos":
+
+        st.header("Escolha o período que deseja vizualizar informações:")
+        data_inicial = st.date_input("Digite a data inicial")
+        data_final = st.date_input("Digite a data final")
+
+        # Criando a tabela
+        tabela = cursor.execute(f"SELECT id,valor,datas,categoria FROM recibos WHERE datas BETWEEN '{data_inicial}' AND '{data_final}'") # Pega os itens do banco 
+        tabela = cursor.fetchall()  # Cria a tabela com linhas
+        df = pd.DataFrame(tabela,  columns = ["ID","Valor","Data","Categoria"])
+        df['Valor'] = df['Valor'].map(lambda x: '%.2f' % x)  # Comando usado para formatar os valores em dinheiro
+#        st.dataframe(df2)
+
+        _funct = st.sidebar.radio(label="Funções", options = ['Remover'])
+
+        st.header("Tabela de Recebimentos")
+        st.subheader("Selecione os itens que deseja excluir")
+
+        gd = GridOptionsBuilder.from_dataframe(df)
+        gd.configure_pagination(enabled=True)
+        gd.configure_default_column(editable=True,groupable=True)
+
+        if _funct == 'Remover':
+            sel_mode = st.radio('Tipo de seleção', options = ['multiple'])
+            gd.configure_selection(selection_mode=sel_mode,use_checkbox=True)
+            gridoptions = gd.build()
+
+            grid_table = AgGrid(df,gridOptions=gridoptions,  
+                        update_mode= GridUpdateMode.SELECTION_CHANGED,
+                        height = 400,
+                        allow_unsafe_jscode=True,
+                        #enable_enterprise_modules = True,
+                        theme = 'fresh')
+                        
+            sel_row = grid_table['selected_rows'] # Seleciona as linhas escolhidas pelos usuários
+
+            btn = st.button('EXCLUIR') # Cria o botão
+            if btn == True:
+                for item in sel_row:
+                    indice = item["ID"]
+                    cursor.execute(f"DELETE FROM despesas WHERE id = {indice}")
+                    bd.commit()
+                st.warning("Os dados foram excluidos! Atualize a página para visualizar atualizações!")
+removerRecibo()
